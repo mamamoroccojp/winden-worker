@@ -62,7 +62,10 @@ class WorkerController extends AbstractController implements TokenAuthenticatedC
             $run->setStatus(RunStatus::Success);
             $entity->setStatus(Status::Done);
 
-            $cache->get('workflow_' . $payload['uuid'], function () use ($payload) {
+            // Invalidate cache
+            $cache->delete('workflow_' . $entity->getUuid());
+
+            $cache->get('workflow_' . $entity->getUuid(), function () use ($payload) {
                 return base64_decode($payload['payload']);
             });
         } else {
