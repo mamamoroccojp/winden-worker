@@ -479,14 +479,19 @@ class ClientController extends AbstractController
             return $this->json($messages, Response::HTTP_BAD_REQUEST);
         }
 
-        $payload = $cache->get('workflow_' . $entity->getUuid(), fn () => null);
+        $payload = null;
+        
+        if ($entity->getStatus() === Status::Done) {
+            $payload = $cache->get('workflow_' . $entity->getUuid(), fn () => null);
+            $payload = $payload ? base64_encode($payload) : null;
+        }
 
         return $this->json([
             'type' => $request->query->get('type'),
             'uuid' => $entity->getUuid(),
             'status' => $entity->getStatus()->value,
             'site' => $entity->getSite(),
-            'payload' => $payload ? base64_encode($payload) : null,
+            'payload' => $payload,
         ], Response::HTTP_OK, [], [
             'groups' => ['autocomplete:read', 'compile:read', 'run:read']
         ]);
